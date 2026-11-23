@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="uk"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CN Drop: лоти з Китаю</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9e8e4;--ink:#17171c;--mut:#6b6b72;--card:#f6f5f2;--acc:#2b3cff;--line:#cfcdc6;--fg:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141418;--ink:#ecebe6;--mut:#9a9aa3;--card:#1d1d23;--acc:#7f8cff;--line:#33333b;--fg:#10101a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Manrope,system-ui,sans-serif}
+header,main,  .th{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}.th img{width:56px;height:56px;object-fit:cover;border-radius:4px;cursor:pointer}
+footer{max-width:1000px;margin:0 auto;padding:14px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.logo{font:800 22px Unbounded,sans-serif;cursor:pointer}a,.lnk{cursor:pointer}.cartlnk{font-weight:700}
+h1,h2{font-family:Unbounded,sans-serif;line-height:1.1}h1{font-size:clamp(28px,8vw,50px);margin:.4em 0}
+.sub{color:var(--mut);font-size:18px;max-width:44ch}.mut{color:var(--mut)}.warn{color:#c0392b;font-weight:600}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;padding:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;border-top:2px solid var(--ink);padding-top:8px;font-weight:600}.steps li:before{content:counter(s)". ";color:var(--acc)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.tabs a{padding:6px 14px;border:1px solid var(--line);border-radius:99px;font-size:14px}.tabs a.on{background:var(--ink);color:var(--bg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.card{background:var(--card);padding:8px;border-radius:6px;cursor:pointer}.card h3{font-size:14px;margin:8px 0 2px}.card p{margin:0;font-weight:700}
+.im{aspect-ratio:1;width:100%;border-radius:4px;display:flex;align-items:flex-end;padding:8px;font:800 52px Unbounded,sans-serif;color:rgba(0,0,0,.14);object-fit:cover}
+.lot{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:700px){.lot{grid-template-columns:1fr}}
+.price{font:800 30px Unbounded,sans-serif;margin:6px 0}
+input,select,textarea,button{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--card);color:var(--ink);width:100%}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn{display:inline-block;background:var(--acc);color:var(--fg);border:0;font-weight:700;padding:12px 20px;cursor:pointer;margin-top:10px;width:auto;border-radius:4px;text-decoration:none}
+.btn.alt{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.form{display:grid;gap:10px;max-width:500px}.form label{display:grid;gap:4px;font-weight:600;font-size:14px}
+.line{display:grid;grid-template-columns:48px 1fr auto 28px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.line .im{width:48px;height:48px;font-size:18px;padding:4px}
+.code{font:800 34px Unbounded,sans-serif;letter-spacing:1px;margin:8px 0;word-break:break-all}
+footer{color:var(--mut);font-size:14px;padding-bottom:40px}
+</style></head><body>
+<header><span class="logo" onclick="go('')">CN Drop</span><a class="cartlnk" onclick="go('cart')">Кошик <span id="cc"></span></a></header>
+<main id="app"></main>
+<footer>Ціна вже включає доставку з Китаю. Доставку по Україні оплачуєте при отриманні.</footer>
+<script src="lots.js"></script>
+<script>
+var S=window.SHOP;
+if(!S){document.getElementById('app').innerHTML='<h1>Немає файлу lots.js</h1><p>Завантажте lots.js у ту саму папку, де лежить index.html.</p>';throw 0}
+var CONFIG=S.CONFIG,CATS=S.CATS,LOTS=S.LOTS.filter(function(l){return !l.hidden});
+var byId=function(id){return LOTS.filter(function(l){return l.id==id})[0]};
+var BG=['#c9d1ff','#e8e1d3','#d5e8d4','#f3d1d1'];
+// вага: з лота, а якщо порожньо, типова по категорії; плюс запас на упаковку Meest
+var price=function(l){var kg=(l.kg||(S.DEFKG||{})[l.cat]||0.5)*(1+(CONFIG.weightBuffer||0)/100);return Math.ceil((l.cny*CONFIG.cny*(1+CONFIG.markup/100)+kg*CONFIG.shipUsdPerKg*CONFIG.usd)/10)*10};
+var uah=function(n){return n.toLocaleString('uk-UA')+' ₴'};
+var pt=function(n){return (CONFIG.approx?'≈ ':'')+uah(n)};
+function im(l){return l.imgs&&l.imgs[0]?'<img class="im" loading="lazy" alt="" src="'+l.imgs[0]+'">':'<div class="im" style="background:'+BG[l.id%4]+'">'+l.name.slice(0,2)+'</div>'}
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k));localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+var cart=(store('cart')||[]).filter(function(c){return byId(c.id)}),cat='',q='',last=store('last');
+function save(){store('cart',cart);document.getElementById('cc').textContent=cart.length?'('+cart.length+')':''}
+function go(h){location.hash=h}
+function thumbs(l){return l.imgs&&l.imgs.length>1?'<div class="th">'+l.imgs.map(function(u){return '<img alt="" src="'+u+'" onclick="document.querySelector(\'.lot .im\').src=this.src">'}).join('')+'</div>':''}
+function card(l){return '<div class="card" onclick="go(\'lot-'+l.id+'\')">'+im(l)+'<h3>'+l.name+'</h3><p>'+pt(price(l))+'</p></div>'}
+function code(){var a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',s='';for(var i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return 'CN-'+s}
+function render(){
+  var h=location.hash.slice(1),a=document.getElementById('app'),m;save();
+  if(m=h.match(/^lot-(\d+)$/)){var l=byId(m[1]);if(!l){go('');return}
+    var o=function(id,t,arr){return arr.length?'<label>'+t+'<select id="'+id+'">'+arr.map(function(x){return '<option>'+x+'</option>'}).join('')+'</select></label>':''};
+    a.innerHTML='<div class="lot"><div>'+im(l)+thumbs(l)+'</div><div><h1 style="font-size:28px">'+l.name+'</h1><p class="price">'+pt(price(l))+'</p><p class="mut">Доставка з Китаю включена. Орієнтовно 14–25 днів.'+(CONFIG.approx?' Ціна орієнтовна, точну підтвердимо в Telegram.':'')+'</p><p>'+l.desc+'</p><div class="form">'+o('sz','Розмір',l.sizes)+o('cl','Колір',l.colors)+'<button class="btn" id="add">Додати в кошик</button></div></div></div>';
+    document.getElementById('add').onclick=function(){var v=function(i){var e=document.getElementById(i);return e?e.value:''};cart.push({id:l.id,sz:v('sz'),cl:v('cl'),qty:1});go('cart')};
+  }else if(h=='cart'){
+    if(!cart.length){a.innerHTML='<h1>Кошик</h1><p>Порожньо. <a class="lnk" onclick="go(\'\')"><u>Обрати лот</u></a></p>';return}
+    var s=0;a.innerHTML='<h1>Кошик</h1>'+cart.map(function(c,i){var l=byId(c.id);s+=price(l)*c.qty;return '<div class="line">'+im(l)+'<div><b>'+l.name+'</b><br><span class="mut">'+c.sz+' '+c.cl+'</span></div><span>'+pt(price(l)*c.qty)+'</span><a class="lnk" aria-label="Видалити" onclick="cart.splice('+i+',1);render()">×</a></div>'}).join('')+'<p><b>Разом: '+pt(s)+'</b> <span class="mut">(доставка з Китаю включена'+(CONFIG.approx?', ціна орієнтовна':'')+')</span></p>'+
+    '<form class="form" id="f"><h2>Ваші дані</h2><label>Імʼя та прізвище<input id="fn" required></label><label>Телефон<input id="fp" required placeholder="+380..."></label><label>Місто і відділення пошти<input id="fc" required></label><button class="btn">Отримати номер замовлення</button></form>';
+    document.getElementById('f').onsubmit=function(e){e.preventDefault();
+      var c=code(),lines=cart.map(function(x){var l=byId(x.id);return '• '+l.name+' ('+[x.sz,x.cl].filter(Boolean).join(', ')+') x'+x.qty+' — '+pt(price(l)*x.qty)});
+      var msg='Замовлення '+c+'\n'+lines.join('\n')+'\nРазом: '+pt(s)+'\n\n'+document.getElementById('fn').value+'\n'+document.getElementById('fp').value+'\n'+document.getElementById('fc').value;
+      last={code:c,msg:msg};store('last',last);cart=[];save();go('done')};
+  }else if(h=='done'&&last){
+    a.innerHTML='<h1>Ваше замовлення</h1><p class="code">'+last.code+'</p><p>Надішліть цей номер нам у Telegram. Ми підтвердимо замовлення, а після викупу надішлемо трекінг.</p><textarea id="mt" rows="8" readonly></textarea><p><a class="btn" id="tg" target="_blank" rel="noopener">Відправити в Telegram</a> <button class="btn alt" id="cp">Скопіювати текст</button></p><p id="ok" class="mut"></p>';
+    document.getElementById('mt').value=last.msg;
+    document.getElementById('tg').href='https://t.me/'+CONFIG.tg+'?text='+encodeURIComponent(last.msg);
+    document.getElementById('cp').onclick=function(){var t=document.getElementById('mt');t.select();try{navigator.clipboard.writeText(last.msg)}catch(e){document.execCommand('copy')}document.getElementById('ok').textContent='Скопійовано. Вставте в чат з нами.'};
+  }else{
+    a.innerHTML='<h1>Китай без<br>головного болю</h1><p class="sub">Обираєте лот, отримуєте номер замовлення і надсилаєте його нам у Telegram. Ми викупаємо і веземо.</p><ol class="steps"><li>Оберіть лот</li><li>Отримайте номер замовлення</li><li>Надішліть його нам у Telegram</li><li>Отримайте трекінг і заберіть на пошті</li></ol><div class="form" style="margin-top:16px"><input id="q" placeholder="Пошук" value="'+q.replace(/"/g,'')+'"></div><div class="tabs"><a class="'+(cat?'':'on')+'" onclick="cat=\'\';render()">Усе</a>'+Object.keys(CATS).map(function(k){return '<a class="'+(cat==k?'on':'')+'" onclick="cat=\''+k+'\';render()">'+CATS[k]+'</a>'}).join('')+'</div><div class="grid" id="g"></div>';
+    var draw=function(){var r=LOTS.filter(function(l){return(!cat||l.cat==cat)&&l.name.toLowerCase().indexOf(q.toLowerCase())>-1});document.getElementById('g').innerHTML=r.map(card).join('')||'<p>Нічого не знайдено. Спробуйте іншу категорію.</p>'};
+    document.getElementById('q').oninput=function(e){q=e.target.value;draw()};draw();
+  }
+  scrollTo(0,0);
+}
+addEventListener('hashchange',render);render();
+</script></body></html>
